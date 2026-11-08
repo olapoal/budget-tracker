@@ -3097,6 +3097,10 @@
         const THEME_KEY = 'budget_app_theme';
         const PRIVACY_KEY = 'budget_privacy_mode';
         const SOUND_KEY = 'budget_sound_fx';
+        const SUPABASE_CONFIG = {
+            url: 'https://nsrelmgwekpxzgiookyx.supabase.co',
+            key: 'sb_publishable_gZjhOObhywaTz_2OAbOERg_xP_C0oxM'
+        };
 
         // Default initial categories
         const DEFAULT_CATEGORIES = [
@@ -3281,14 +3285,9 @@
                 if (stored !== null && stored !== '') {
                     return stored.trim().toLowerCase();
                 }
-                // Jika belum ada lisensi tersimpan, aktifkan akun utama olapoal.artgallery@gmail.com
-                if (stored === null) {
-                    localStorage.setItem(LICENSE_KEY, 'olapoal.artgallery@gmail.com');
-                    return 'olapoal.artgallery@gmail.com';
-                }
                 return '';
             } catch (e) {
-                return 'olapoal.artgallery@gmail.com';
+                return '';
             }
         }
 
@@ -3372,19 +3371,55 @@
                 let isValid = false;
                 let responseData = null;
 
-                if (email === 'olapoal.artgallery@gmail.com' || isLocal) {
-                    await new Promise(r => setTimeout(r, 400));
+                if (email === 'olapoal.artgallery@gmail.com') {
+                    await new Promise(r => setTimeout(r, 350));
                     isValid = true;
                     responseData = { valid: true, email: email, name: 'Owner (Alrizal)' };
                 } else {
-                    const res = await fetch('/.netlify/functions/verify-email', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ email: email })
-                    });
-                    responseData = await res.json().catch(() => null);
-                    if (res.ok && responseData && responseData.valid) {
+                    // 1. Coba verifikasi lewat Netlify Serverless Function (jika ada)
+                    try {
+                        const res = await fetch('/.netlify/functions/verify-email', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ email: email })
+                        });
+                        if (res.ok) {
+                            responseData = await res.json().catch(() => null);
+                            if (responseData && responseData.valid) {
+                                isValid = true;
+                            }
+                        }
+                    } catch (e) {
+                        console.warn("Netlify function check bypassed, fallback ke Supabase:", e);
+                    }
+
+                    // 2. Direct Supabase Query (aktif untuk GitHub Pages & static hosting)
+                    if (!isValid && SUPABASE_CONFIG && SUPABASE_CONFIG.url && SUPABASE_CONFIG.key) {
+                        try {
+                            const cleanUrl = SUPABASE_CONFIG.url.replace(/\/$/, "");
+                            const supaRes = await fetch(`${cleanUrl}/rest/v1/budget_buyers?email=eq.${encodeURIComponent(email)}&select=*`, {
+                                method: 'GET',
+                                headers: {
+                                    'apikey': SUPABASE_CONFIG.key,
+                                    'Authorization': `Bearer ${SUPABASE_CONFIG.key}`
+                                }
+                            });
+                            if (supaRes.ok) {
+                                const rows = await supaRes.json().catch(() => []);
+                                if (Array.isArray(rows) && rows.length > 0) {
+                                    isValid = true;
+                                    responseData = { valid: true, email: email, name: rows[0].name || 'Pembeli Lynk.id' };
+                                }
+                            }
+                        } catch (supaErr) {
+                            console.warn("Supabase query error:", supaErr);
+                        }
+                    }
+
+                    // 3. Fallback lingkungan local/development
+                    if (!isValid && isLocal) {
                         isValid = true;
+                        responseData = { valid: true, email: email, name: 'Local Dev User' };
                     }
                 }
 

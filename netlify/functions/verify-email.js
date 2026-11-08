@@ -55,9 +55,9 @@ exports.handler = async function(event, context) {
             console.warn("Netlify Blobs check notice:", blobsErr.message);
         }
 
-        // 2. Cek dari Supabase Database jika ada env variables (Opsional / Fallback)
-        const supabaseUrl = process.env.SUPABASE_URL;
-        const supabaseKey = process.env.SUPABASE_KEY || process.env.SUPABASE_ANON_KEY;
+        // 2. Cek dari Supabase Database
+        const supabaseUrl = process.env.SUPABASE_URL || "https://nsrelmgwekpxzgiookyx.supabase.co";
+        const supabaseKey = process.env.SUPABASE_KEY || process.env.SUPABASE_ANON_KEY || "sb_publishable_gZjhOObhywaTz_2OAbOERg_xP_C0oxM";
 
         if (supabaseUrl && supabaseKey) {
             try {

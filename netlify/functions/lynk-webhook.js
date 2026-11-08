@@ -122,9 +122,9 @@ exports.handler = async function(event, context) {
             console.warn("Gagal simpan ke Netlify Blobs:", blobsErr.message);
         }
 
-        // 2. Simpan ke Supabase jika ada konfigurasi ENV (Opsional)
-        const supabaseUrl = process.env.SUPABASE_URL;
-        const supabaseKey = process.env.SUPABASE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
+        // 2. Simpan ke Supabase Database
+        const supabaseUrl = process.env.SUPABASE_URL || "https://nsrelmgwekpxzgiookyx.supabase.co";
+        const supabaseKey = process.env.SUPABASE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY || "sb_publishable_gZjhOObhywaTz_2OAbOERg_xP_C0oxM";
 
         if (supabaseUrl && supabaseKey) {
             try {

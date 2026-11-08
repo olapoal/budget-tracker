@@ -598,6 +598,11 @@
 
     <script>
         const ADMIN_STORAGE_KEY = 'budget_admin_secret_key';
+        const FALLBACK_ADMIN_KEY = 'olapoal2026';
+        const SUPABASE_CONFIG = {
+            url: 'https://nsrelmgwekpxzgiookyx.supabase.co',
+            key: 'sb_publishable_gZjhOObhywaTz_2OAbOERg_xP_C0oxM'
+        };
         let allBuyersData = [];
 
         function getStoredKey() {
@@ -641,6 +646,11 @@
             const loginError = document.getElementById('loginError');
             loginError.style.display = 'none';
 
+            let authenticated = false;
+            let buyersList = [];
+            let source = 'Netlify Blobs';
+
+            // 1. Coba verifikasi lewat Netlify Function (jika backend Netlify aktif)
             try {
                 const res = await fetch('/.netlify/functions/admin-buyers', {
                     headers: { 'X-Admin-Key': key }
@@ -652,39 +662,104 @@
                     return;
                 }
 
-                const data = await res.json();
+                if (res.ok) {
+                    const data = await res.json();
+                    authenticated = true;
+                    buyersList = data.buyers || [];
+                    source = data.source === 'supabase' ? 'Supabase' : 'Netlify Blobs';
+                }
+            } catch (e) {
+                console.warn("Netlify function tidak tersedia (GitHub Pages mode)");
+            }
+
+            // 2. Jika di GitHub Pages / Static Hosting, validasi dengan FALLBACK_ADMIN_KEY dan ambil data dari Supabase
+            if (!authenticated) {
+                if (key !== FALLBACK_ADMIN_KEY) {
+                    loginError.textContent = '❌ Kunci rahasia salah. Akses ditolak.';
+                    loginError.style.display = 'block';
+                    return;
+                }
+
+                // Kunci valid ('olapoal2026')! Tarik data langsung dari Supabase REST API
+                try {
+                    const cleanUrl = SUPABASE_CONFIG.url.replace(/\/$/, "");
+                    const supaRes = await fetch(`${cleanUrl}/rest/v1/budget_buyers?select=*&order=created_at.desc`, {
+                        headers: {
+                            'apikey': SUPABASE_CONFIG.key,
+                            'Authorization': `Bearer ${SUPABASE_CONFIG.key}`
+                        }
+                    });
+
+                    if (supaRes.ok) {
+                        buyersList = await supaRes.json().catch(() => []);
+                        source = 'Supabase (Cloud Live)';
+                        authenticated = true;
+                    } else if (supaRes.status === 404) {
+                        // Tabel belum dibuat di Supabase
+                        buyersList = [
+                            { 
+                                email: 'olapoal.artgallery@gmail.com', 
+                                name: 'Owner (Alrizal)', 
+                                order_id: 'OWNER-LIFETIME', 
+                                created_at: new Date().toISOString() 
+                            }
+                        ];
+                        source = 'Supabase (Tabel Belum Dibuat)';
+                        authenticated = true;
+                    }
+                } catch (supaErr) {
+                    console.error("Gagal kueri Supabase:", supaErr);
+                    authenticated = true;
+                    source = 'Direct Mode';
+                }
+            }
+
+            if (authenticated) {
                 document.getElementById('loginCard').style.display = 'none';
                 document.getElementById('dashboardView').style.display = 'block';
                 document.getElementById('btnLogout').style.display = 'inline-flex';
 
-                renderBuyersTable(data.buyers || []);
-                document.getElementById('statDbSource').textContent = data.source === 'supabase' ? 'Supabase' : 'Netlify Blobs';
-            } catch (e) {
-                if (window.location.protocol === 'file:' || window.location.hostname === 'localhost') {
-                    document.getElementById('loginCard').style.display = 'none';
-                    document.getElementById('dashboardView').style.display = 'block';
-                    document.getElementById('btnLogout').style.display = 'inline-flex';
-                    renderBuyersTable([
-                        { email: 'olapoal.artgallery@gmail.com', name: 'Owner (Tester)', order_id: 'DEV-TEST-001', created_at: new Date().toISOString() },
-                        { email: 'pembeli.contoh@gmail.com', name: 'Pembeli Lynk.id', order_id: 'LYNK-BTR-10293', created_at: new Date().toISOString() }
-                    ]);
-                } else {
-                    loginError.textContent = 'Gagal menghubungi server admin.';
-                    loginError.style.display = 'block';
-                }
+                renderBuyersTable(buyersList);
+                document.getElementById('statDbSource').textContent = source;
+            } else {
+                loginError.textContent = 'Gagal menghubungi server.';
+                loginError.style.display = 'block';
             }
         }
 
         async function fetchBuyersList() {
             const key = getStoredKey() || document.getElementById('adminKeyInput').value.trim();
+            
+            // 1. Coba Netlify
             try {
                 const res = await fetch('/.netlify/functions/admin-buyers', {
                     headers: { 'X-Admin-Key': key }
                 });
-                const data = await res.json();
-                renderBuyersTable(data.buyers || []);
-                showToast('Daftar pembeli diperbarui');
-            } catch (e) {
+                if (res.ok) {
+                    const data = await res.json();
+                    renderBuyersTable(data.buyers || []);
+                    showToast('Daftar pembeli diperbarui');
+                    return;
+                }
+            } catch (e) {}
+
+            // 2. Supabase Fallback (GitHub Pages)
+            try {
+                const cleanUrl = SUPABASE_CONFIG.url.replace(/\/$/, "");
+                const supaRes = await fetch(`${cleanUrl}/rest/v1/budget_buyers?select=*&order=created_at.desc`, {
+                    headers: {
+                        'apikey': SUPABASE_CONFIG.key,
+                        'Authorization': `Bearer ${SUPABASE_CONFIG.key}`
+                    }
+                });
+                if (supaRes.ok) {
+                    const list = await supaRes.json().catch(() => []);
+                    renderBuyersTable(list);
+                    showToast('Daftar pembeli diperbarui dari Supabase');
+                } else {
+                    showToast('Tabel database belum dibuat di Supabase');
+                }
+            } catch (err) {
                 showToast('Gagal refresh data');
             }
         }
@@ -747,13 +822,14 @@
         }
 
         async function tambahPembeliManual() {
-            const email = document.getElementById('newBuyerEmail').value.trim();
+            const email = document.getElementById('newBuyerEmail').value.trim().toLowerCase();
             const name = document.getElementById('newBuyerName').value.trim();
             const note = document.getElementById('newBuyerNote').value.trim();
             const key = getStoredKey() || document.getElementById('adminKeyInput').value.trim();
 
             if (!email) return;
 
+            // 1. Coba lewat Netlify function
             try {
                 const res = await fetch('/.netlify/functions/admin-buyers', {
                     method: 'POST',
@@ -768,12 +844,48 @@
                     showToast(`✅ Email ${email} berhasil diaktivasi!`);
                     document.getElementById('addBuyerForm').reset();
                     fetchBuyersList();
-                } else {
-                    const err = await res.json();
-                    alert('Gagal: ' + (err.error || 'Terjadi kesalahan'));
+                    return;
                 }
-            } catch (e) {
-                alert('Gagal menghubungi server.');
+            } catch (e) {}
+
+            // 2. Direct Supabase Insert (GitHub Pages)
+            try {
+                const cleanUrl = SUPABASE_CONFIG.url.replace(/\/$/, "");
+                const newRecord = {
+                    email: email,
+                    name: name || 'Pembeli Lynk.id',
+                    order_id: 'MANUAL-' + Date.now().toString(36).toUpperCase(),
+                    product_name: 'Budget Tracker Pro [BTR]',
+                    status: 'active',
+                    created_at: new Date().toISOString(),
+                    note: note || 'Ditambahkan manual oleh Admin'
+                };
+
+                const supaRes = await fetch(`${cleanUrl}/rest/v1/budget_buyers`, {
+                    method: 'POST',
+                    headers: {
+                        'apikey': SUPABASE_CONFIG.key,
+                        'Authorization': `Bearer ${SUPABASE_CONFIG.key}`,
+                        'Content-Type': 'application/json',
+                        'Prefer': 'return=representation'
+                    },
+                    body: JSON.stringify(newRecord)
+                });
+
+                if (supaRes.ok || supaRes.status === 201) {
+                    showToast(`✅ Email ${email} berhasil disimpan ke Supabase!`);
+                    document.getElementById('addBuyerForm').reset();
+                    fetchBuyersList();
+                } else {
+                    const err = await supaRes.json().catch(() => ({}));
+                    if (supaRes.status === 404) {
+                        alert('Tabel "budget_buyers" belum dibuat di Supabase. Silakan jalankan query SQL pembuatan tabel di Supabase Dashboard.');
+                    } else {
+                        alert('Gagal simpan ke Supabase: ' + (err.message || 'Error'));
+                    }
+                }
+            } catch (err) {
+                alert('Gagal menghubungi Supabase.');
             }
         }
 
@@ -781,6 +893,7 @@
             if (!confirm(`Hapus akses lisensi untuk email ${email}?`)) return;
             const key = getStoredKey() || document.getElementById('adminKeyInput').value.trim();
 
+            // 1. Coba lewat Netlify function
             try {
                 const res = await fetch('/.netlify/functions/admin-buyers', {
                     method: 'DELETE',
@@ -794,20 +907,42 @@
                 if (res.ok) {
                     showToast(`Akses ${email} dihapus.`);
                     fetchBuyersList();
-                } else {
-                    alert('Gagal menghapus.');
+                    return;
                 }
-            } catch (e) {
-                alert('Error koneksi.');
+            } catch (e) {}
+
+            // 2. Direct Supabase Delete (GitHub Pages)
+            try {
+                const cleanUrl = SUPABASE_CONFIG.url.replace(/\/$/, "");
+                const supaRes = await fetch(`${cleanUrl}/rest/v1/budget_buyers?email=eq.${encodeURIComponent(email)}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'apikey': SUPABASE_CONFIG.key,
+                        'Authorization': `Bearer ${SUPABASE_CONFIG.key}`
+                    }
+                });
+
+                if (supaRes.ok) {
+                    showToast(`Akses ${email} dihapus dari Supabase.`);
+                    fetchBuyersList();
+                } else {
+                    alert('Gagal menghapus dari Supabase.');
+                }
+            } catch (err) {
+                alert('Error koneksi ke Supabase.');
             }
         }
 
         function copyActivationLink(email) {
-            const origin = window.location.origin;
-            const link = `${origin}/?email=${encodeURIComponent(email)}`;
+            let baseUrl = window.location.origin + window.location.pathname.replace(/\/admin(\.html)?$/, '');
+            if (!baseUrl.endsWith('/')) baseUrl += '/';
+            const link = `${baseUrl}?email=${encodeURIComponent(email)}`;
             navigator.clipboard.writeText(link).then(() => {
                 showToast(`Link aktivasi disalin: ${link}`);
             }).catch(() => {
+                prompt('Salin link ini:', link);
+            });
+        }
                 prompt('Salin link ini:', link);
             });
         }

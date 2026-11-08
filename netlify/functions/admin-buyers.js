@@ -56,8 +56,8 @@ exports.handler = async function(event, context) {
             }
 
             // Fallback / Tambahan dari Supabase jika dikonfigurasi
-            const supabaseUrl = process.env.SUPABASE_URL;
-            const supabaseKey = process.env.SUPABASE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
+            const supabaseUrl = process.env.SUPABASE_URL || "https://nsrelmgwekpxzgiookyx.supabase.co";
+            const supabaseKey = process.env.SUPABASE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY || "sb_publishable_gZjhOObhywaTz_2OAbOERg_xP_C0oxM";
 
             if (supabaseUrl && supabaseKey && buyers.length === 0) {
                 try {
@@ -131,9 +131,9 @@ exports.handler = async function(event, context) {
                 await store.setJSON(email, record);
             }
 
-            // Simpan juga ke Supabase jika aktif
-            const supabaseUrl = process.env.SUPABASE_URL;
-            const supabaseKey = process.env.SUPABASE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
+            // Simpan juga ke Supabase
+            const supabaseUrl = process.env.SUPABASE_URL || "https://nsrelmgwekpxzgiookyx.supabase.co";
+            const supabaseKey = process.env.SUPABASE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY || "sb_publishable_gZjhOObhywaTz_2OAbOERg_xP_C0oxM";
             if (supabaseUrl && supabaseKey) {
                 try {
                     const cleanUrl = supabaseUrl.replace(/\/$/, "");
@@ -178,8 +178,8 @@ exports.handler = async function(event, context) {
                 await store.delete(email);
             }
 
-            const supabaseUrl = process.env.SUPABASE_URL;
-            const supabaseKey = process.env.SUPABASE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
+            const supabaseUrl = process.env.SUPABASE_URL || "https://nsrelmgwekpxzgiookyx.supabase.co";
+            const supabaseKey = process.env.SUPABASE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY || "sb_publishable_gZjhOObhywaTz_2OAbOERg_xP_C0oxM";
             if (supabaseUrl && supabaseKey) {
                 try {
                     const cleanUrl = supabaseUrl.replace(/\/$/, "");
