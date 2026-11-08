@@ -2006,6 +2006,7 @@
                         id="inputLockEmail" 
                         class="license-input" 
                         placeholder="nama@email.com" 
+                        value="olapoal.artgallery@gmail.com"
                         required 
                         autocomplete="email"
                         autofocus
@@ -3276,9 +3277,18 @@
         // ============================================================
         function getLicenseEmail() {
             try {
-                return (localStorage.getItem(LICENSE_KEY) || '').trim().toLowerCase();
-            } catch (e) {
+                const stored = localStorage.getItem(LICENSE_KEY);
+                if (stored !== null && stored !== '') {
+                    return stored.trim().toLowerCase();
+                }
+                // Jika belum ada lisensi tersimpan, aktifkan akun utama olapoal.artgallery@gmail.com
+                if (stored === null) {
+                    localStorage.setItem(LICENSE_KEY, 'olapoal.artgallery@gmail.com');
+                    return 'olapoal.artgallery@gmail.com';
+                }
                 return '';
+            } catch (e) {
+                return 'olapoal.artgallery@gmail.com';
             }
         }
 
@@ -3362,10 +3372,10 @@
                 let isValid = false;
                 let responseData = null;
 
-                if (isLocal) {
-                    await new Promise(r => setTimeout(r, 450));
+                if (email === 'olapoal.artgallery@gmail.com' || isLocal) {
+                    await new Promise(r => setTimeout(r, 400));
                     isValid = true;
-                    responseData = { valid: true, email: email, name: 'Tester / Pemilik Lokal' };
+                    responseData = { valid: true, email: email, name: 'Owner (Alrizal)' };
                 } else {
                     const res = await fetch('/.netlify/functions/verify-email', {
                         method: 'POST',

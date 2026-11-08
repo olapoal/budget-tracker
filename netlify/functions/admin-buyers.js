@@ -84,6 +84,17 @@ exports.handler = async function(event, context) {
                 }
             }
 
+            const ownerEmail = "olapoal.artgallery@gmail.com";
+            if (!buyers.some(b => (b.email || "").toLowerCase() === ownerEmail)) {
+                buyers.unshift({
+                    email: ownerEmail,
+                    name: "Owner / Pengembang (Alrizal)",
+                    order_id: "OWNER-ACCESS-001",
+                    created_at: new Date().toISOString(),
+                    note: "Akun Utama Pemilik [BTR]"
+                });
+            }
+
             return {
                 statusCode: 200,
                 headers: corsHeaders,
