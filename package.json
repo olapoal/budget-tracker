@@ -1,0 +1,12 @@
+{
+  "name": "aplikasi-budget-tracker-pro",
+  "version": "1.0.0",
+  "description": "Aplikasi Budget Tracker Pro — Pencatat Keuangan Pribadi Tercanggih & Manajemen Finansial Cerdas",
+  "main": "index.html",
+  "scripts": {
+    "build": "echo 'Build OK'"
+  },
+  "dependencies": {
+    "@netlify/blobs": "^8.1.0"
+  }
+}

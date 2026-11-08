@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portal Admin — Kelola Lisensi Pembeli [BTR] Budget Tracker Pro</title>
+    <!-- Google Fonts: Plus Jakarta Sans & Outfit (Modern Fintech Digits) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" href="Glossy Wallet Finance Icon.png">
+    <style>
+        :root {
+            --bg-body: #06090F;
+            --surface-glass: rgba(14, 23, 38, 0.7);
+            --surface-card: rgba(18, 29, 48, 0.8);
+            --surface-input: rgba(8, 14, 24, 0.85);
+            --primary: #00F5A0;
+            --primary-rgb: 0, 245, 160;
+            --primary-gradient: linear-gradient(135deg, #00F5A0 0%, #00B894 100%);
+            --accent-glow: rgba(0, 245, 160, 0.35);
+            --accent-cyan: #00D9F5;
+            --accent-rose: #FF3366;
+            --text-main: #FFFFFF;
+            --text-muted: #94A3B8;
+            --border: rgba(255, 255, 255, 0.08);
+            --border-hover: rgba(0, 245, 160, 0.45);
+            --radius-sm: 12px;
+            --radius-md: 18px;
+            --radius-lg: 24px;
+            --shadow-glass: 0 20px 45px -10px rgba(0, 0, 0, 0.7), 0 0 30px rgba(0, 245, 160, 0.12);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow-x: hidden;
+            scroll-behavior: smooth;
+        }
+
+        /* Cyber-Luxe Custom Scrollbar */
+        @supports not selector(::-webkit-scrollbar) {
+            * {
+                scrollbar-width: thin;
+                scrollbar-color: var(--primary) rgba(10, 15, 28, 0.85);
+            }
+        }
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.35);
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, var(--primary) 0%, rgba(var(--primary-rgb), 0.4) 100%);
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 0 10px var(--accent-glow);
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #FFFFFF;
+            box-shadow: 0 0 16px var(--primary);
+        }
+
+        .mono-num {
+            font-family: 'Outfit', 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-variant-numeric: tabular-nums;
+            font-feature-settings: 'tnum' on, 'lnum' on;
+            letter-spacing: -0.2px;
+        }
+
+        /* Ambient Aurora */
+        .aurora-bg {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+            opacity: 0.85;
+        }
+        .aurora-orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(120px);
+            opacity: 0.4;
+            animation: floatOrb 22s infinite alternate ease-in-out;
+        }
+        .orb-1 {
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(0, 245, 160, 0.45) 0%, transparent 70%);
+            top: -100px;
+            left: -80px;
+        }
+        .orb-2 {
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(157, 78, 221, 0.35) 0%, transparent 70%);
+            top: 40%;
+            right: -120px;
+            animation-duration: 26s;
+        }
+        @keyframes floatOrb {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(50px, 60px); }
+        }
+
+        nav {
+            background: rgba(8, 14, 24, 0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+            padding: 14px 28px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .brand-img {
+            height: 40px;
+            width: auto;
+            object-fit: contain;
+            filter: drop-shadow(0 4px 10px rgba(0,0,0,0.5));
+        }
+
+        .brand-text h1 {
+            font-size: 16px;
+            font-weight: 900;
+            color: #FFFFFF;
+            letter-spacing: -0.3px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .brand-tag {
+            font-size: 9px;
+            font-weight: 900;
+            padding: 1px 6px;
+            border-radius: 4px;
+            background: var(--primary-gradient);
+            color: #000000;
+        }
+
+        .brand-text p {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        .nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-nav-outline {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            padding: 9px 16px;
+            border-radius: var(--radius-sm);
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+
+        .btn-nav-outline:hover {
+            background: rgba(255, 255, 255, 0.12);
+            border-color: rgba(255, 255, 255, 0.25);
+            transform: translateY(-1px);
+        }
+
+        .admin-container {
+            max-width: 1160px;
+            width: 100%;
+            margin: 36px auto;
+            padding: 0 20px;
+            flex: 1;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Login Screen */
+        #loginCard {
+            max-width: 450px;
+            margin: 60px auto;
+            background: var(--surface-glass);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 38px 30px;
+            box-shadow: var(--shadow-glass);
+            text-align: center;
+            backdrop-filter: blur(28px);
+        }
+
+        .admin-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(0, 245, 160, 0.12);
+            border: 1px solid rgba(0, 245, 160, 0.35);
+            color: var(--primary);
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            padding: 5px 14px;
+            border-radius: 30px;
+            margin-bottom: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+            text-align: left;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .form-input {
+            width: 100%;
+            background: var(--surface-input);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 11px 16px;
+            color: var(--text-main);
+            font-size: 13.5px;
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        .form-input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 12px var(--accent-glow);
+        }
+
+        .btn-primary {
+            width: 100%;
+            background: var(--primary-gradient);
+            border: none;
+            color: #000000;
+            padding: 13px 20px;
+            border-radius: var(--radius-sm);
+            font-size: 13.5px;
+            font-weight: 900;
+            cursor: pointer;
+            transition: all 0.25s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            box-shadow: 0 4px 16px var(--accent-glow);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px var(--accent-glow);
+        }
+
+        /* Dashboard UI */
+        #dashboardView {
+            display: none;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+            gap: 18px;
+            margin-bottom: 26px;
+        }
+
+        .stat-card {
+            background: var(--surface-glass);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 22px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            backdrop-filter: blur(24px);
+            transition: all 0.25s;
+        }
+        .stat-card:hover {
+            border-color: var(--border-hover);
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-glass);
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: var(--text-muted);
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+        }
+
+        .stat-val {
+            font-size: 28px;
+            font-weight: 900;
+            color: #FFFFFF;
+        }
+
+        .stat-sub {
+            font-size: 11.5px;
+            color: var(--primary);
+        }
+
+        .card {
+            background: var(--surface-glass);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 24px;
+            margin-bottom: 26px;
+            backdrop-filter: blur(24px);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 18px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .card-title {
+            font-size: 16px;
+            font-weight: 900;
+            color: #FFFFFF;
+            display: flex;
+            align-items: center;
+            gap: 9px;
+        }
+
+        .table-responsive {
+            overflow-x: auto;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            text-align: left;
+        }
+
+        th {
+            background: rgba(255, 255, 255, 0.03);
+            color: var(--text-muted);
+            padding: 13px 16px;
+            font-weight: 800;
+            border-bottom: 1px solid var(--border);
+        }
+
+        td {
+            padding: 14px 16px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+            color: var(--text-main);
+        }
+
+        tr:hover td {
+            background: rgba(255, 255, 255, 0.025);
+        }
+
+        .badge-pill {
+            display: inline-block;
+            padding: 3px 9px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 800;
+        }
+
+        .badge-success {
+            background: rgba(0, 245, 160, 0.18);
+            color: var(--primary);
+            border: 1px solid rgba(0, 245, 160, 0.4);
+        }
+
+        .btn-action {
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 11.5px;
+            font-weight: 700;
+            cursor: pointer;
+            border: 1px solid var(--border);
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-main);
+            transition: all 0.2s;
+        }
+
+        .btn-action:hover {
+            background: rgba(255, 255, 255, 0.12);
+            border-color: rgba(255, 255, 255, 0.25);
+        }
+
+        .btn-danger {
+            background: rgba(255, 51, 102, 0.15);
+            color: #FFA2B8;
+            border-color: rgba(255, 51, 102, 0.4);
+        }
+
+        .btn-danger:hover {
+            background: rgba(255, 51, 102, 0.3);
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: var(--surface-glass);
+            border: 1px solid var(--primary);
+            color: #FFFFFF;
+            padding: 14px 22px;
+            border-radius: var(--radius-sm);
+            font-size: 13.5px;
+            font-weight: 800;
+            box-shadow: var(--shadow-glass);
+            display: none;
+            z-index: 1000;
+            backdrop-filter: blur(20px);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Animated Aurora -->
+    <div class="aurora-bg">
+        <div class="aurora-orb orb-1"></div>
+        <div class="aurora-orb orb-2"></div>
+    </div>
+
+    <nav>
+        <div class="brand">
+            <img src="Glossy Wallet Finance Icon.png" alt="Budget Tracker Logo" class="brand-img" onerror="this.style.display='none'">
+            <div class="brand-text">
+                <h1>Budget Tracker Pro <span class="brand-tag">[BTR]</span></h1>
+                <p>Portal Lisensi & Pembeli Lynk.id</p>
+            </div>
+        </div>
+        <div class="nav-actions">
+            <a href="index.html" target="_blank" class="btn-nav-outline">
+                🚀 Buka Aplikasi Utama ↗
+            </a>
+            <button id="btnLogout" class="btn-nav-outline" onclick="logoutAdmin()" style="display: none;">
+                🚪 Logout
+            </button>
+        </div>
+    </nav>
+
+    <div class="admin-container">
+        <!-- View Login -->
+        <div id="loginCard">
+            <div class="admin-badge">
+                <span>🛡️ Restricted Admin Access</span>
+            </div>
+            <h2 style="font-size: 21px; font-weight: 900; margin-bottom: 8px;">Login Administrator</h2>
+            <p style="font-size: 12.5px; color: var(--text-muted); margin-bottom: 24px;">
+                Masukkan kunci rahasia admin untuk mengelola lisensi pembeli Lynk.id [BTR].
+            </p>
+
+            <form onsubmit="event.preventDefault(); submitLogin();">
+                <div class="form-group">
+                    <label class="form-label" for="adminKeyInput">Kunci Rahasia (Admin Key)</label>
+                    <input type="password" id="adminKeyInput" class="form-input" placeholder="Masukkan admin secret key..." required autofocus>
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 20px; font-size: 12px; color: var(--text-muted); text-align: left;">
+                    <input type="checkbox" id="rememberKey" checked>
+                    <label for="rememberKey">Ingat kunci di browser ini</label>
+                </div>
+                <button type="submit" class="btn-primary" id="btnLogin">
+                    <span>🔑 Masuk ke Dashboard</span>
+                </button>
+            </form>
+            <div id="loginError" style="color: #FF6685; font-size: 12.5px; margin-top: 16px; display: none;"></div>
+        </div>
+
+        <!-- View Dashboard -->
+        <div id="dashboardView">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <span class="stat-label">Total Pembeli Terdaftar</span>
+                    <span class="stat-val mono-num" id="statTotalBuyers">0</span>
+                    <span class="stat-sub">Pembeli Terverifikasi Lynk.id</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-label">Produk Terkait</span>
+                    <span class="stat-val mono-num" style="font-size: 20px; color: #38BDF8;">[BTR]</span>
+                    <span class="stat-sub">Lynk.id Auto-Sync Active</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-label">Status Database</span>
+                    <span class="stat-val" style="font-size: 20px; color: var(--primary);" id="statDbSource">Netlify Blobs</span>
+                    <span class="stat-sub">Cloud Synchronized</span>
+                </div>
+            </div>
+
+            <!-- Form Tambah Pembeli Manual -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">➕ Tambah Akses Pembeli Manual (Whitelist)</h3>
+                </div>
+                <form id="addBuyerForm" onsubmit="event.preventDefault(); tambahPembeliManual();" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)) 130px; gap: 12px; align-items: flex-end;">
+                    <div>
+                        <label class="form-label">Email Pembeli *</label>
+                        <input type="email" id="newBuyerEmail" class="form-input" placeholder="customer@gmail.com" required>
+                    </div>
+                    <div>
+                        <label class="form-label">Nama Lengkap</label>
+                        <input type="text" id="newBuyerName" class="form-input" placeholder="Nama Pembeli">
+                    </div>
+                    <div>
+                        <label class="form-label">Catatan / No. WA</label>
+                        <input type="text" id="newBuyerNote" class="form-input" placeholder="Transfer Manual / Promo">
+                    </div>
+                    <div>
+                        <button type="submit" class="btn-primary" style="height: 42px;">
+                            <span>+ Tambah</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Tabel Data Pembeli -->
+            <div class="card">
+                <div class="card-header">
+                    <div style="display: flex; align-items: center; gap: 14px; flex-wrap: wrap;">
+                        <h3 class="card-title">👥 Daftar Pembeli Lisensi Budget Tracker Pro</h3>
+                        <input type="text" id="searchBuyerInput" oninput="filterBuyers()" placeholder="🔍 Cari nama / email..." class="form-input" style="width: 240px; padding: 8px 12px; font-size: 12.5px;">
+                    </div>
+                    <div style="display: flex; gap: 8px;">
+                        <button class="btn-action" onclick="fetchBuyersList()">🔄 Refresh</button>
+                        <button class="btn-action" onclick="exportBuyersCSV()">📥 Download CSV</button>
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table id="buyersTable">
+                        <thead>
+                            <tr>
+                                <th>No</th>
+                                <th>Tanggal</th>
+                                <th>Nama</th>
+                                <th>Email Pembeli</th>
+                                <th>Order ID</th>
+                                <th>Status</th>
+                                <th style="text-align: right;">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="buyersTbody">
+                            <tr>
+                                <td colspan="7" style="text-align: center; color: var(--text-muted); padding: 34px;">
+                                    Memuat data pembeli...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="toastAlert" class="toast">Notifikasi</div>
+
+    <script>
+        const ADMIN_STORAGE_KEY = 'budget_admin_secret_key';
+        let allBuyersData = [];
+
+        function getStoredKey() {
+            return localStorage.getItem(ADMIN_STORAGE_KEY) || '';
+        }
+
+        function setStoredKey(key) {
+            localStorage.setItem(ADMIN_STORAGE_KEY, key);
+        }
+
+        function clearStoredKey() {
+            localStorage.removeItem(ADMIN_STORAGE_KEY);
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toastAlert');
+            toast.textContent = msg;
+            toast.style.display = 'block';
+            setTimeout(() => { toast.style.display = 'none'; }, 3200);
+        }
+
+        function submitLogin() {
+            const key = document.getElementById('adminKeyInput').value.trim();
+            if (!key) return;
+
+            if (document.getElementById('rememberKey').checked) {
+                setStoredKey(key);
+            }
+            verifyAndLoadDashboard(key);
+        }
+
+        function logoutAdmin() {
+            clearStoredKey();
+            document.getElementById('loginCard').style.display = 'block';
+            document.getElementById('dashboardView').style.display = 'none';
+            document.getElementById('btnLogout').style.display = 'none';
+            document.getElementById('adminKeyInput').value = '';
+        }
+
+        async function verifyAndLoadDashboard(key) {
+            const loginError = document.getElementById('loginError');
+            loginError.style.display = 'none';
+
+            try {
+                const res = await fetch('/.netlify/functions/admin-buyers', {
+                    headers: { 'X-Admin-Key': key }
+                });
+
+                if (res.status === 401) {
+                    loginError.textContent = '❌ Kunci rahasia salah. Akses ditolak.';
+                    loginError.style.display = 'block';
+                    return;
+                }
+
+                const data = await res.json();
+                document.getElementById('loginCard').style.display = 'none';
+                document.getElementById('dashboardView').style.display = 'block';
+                document.getElementById('btnLogout').style.display = 'inline-flex';
+
+                renderBuyersTable(data.buyers || []);
+                document.getElementById('statDbSource').textContent = data.source === 'supabase' ? 'Supabase' : 'Netlify Blobs';
+            } catch (e) {
+                if (window.location.protocol === 'file:' || window.location.hostname === 'localhost') {
+                    document.getElementById('loginCard').style.display = 'none';
+                    document.getElementById('dashboardView').style.display = 'block';
+                    document.getElementById('btnLogout').style.display = 'inline-flex';
+                    renderBuyersTable([
+                        { email: 'olapoal.artgallery@gmail.com', name: 'Owner (Tester)', order_id: 'DEV-TEST-001', created_at: new Date().toISOString() },
+                        { email: 'pembeli.contoh@gmail.com', name: 'Pembeli Lynk.id', order_id: 'LYNK-BTR-10293', created_at: new Date().toISOString() }
+                    ]);
+                } else {
+                    loginError.textContent = 'Gagal menghubungi server admin.';
+                    loginError.style.display = 'block';
+                }
+            }
+        }
+
+        async function fetchBuyersList() {
+            const key = getStoredKey() || document.getElementById('adminKeyInput').value.trim();
+            try {
+                const res = await fetch('/.netlify/functions/admin-buyers', {
+                    headers: { 'X-Admin-Key': key }
+                });
+                const data = await res.json();
+                renderBuyersTable(data.buyers || []);
+                showToast('Daftar pembeli diperbarui');
+            } catch (e) {
+                showToast('Gagal refresh data');
+            }
+        }
+
+        function renderBuyersTable(buyers) {
+            allBuyersData = buyers;
+            document.getElementById('statTotalBuyers').textContent = buyers.length;
+            const tbody = document.getElementById('buyersTbody');
+
+            if (!buyers || buyers.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: var(--text-muted); padding: 34px;">Belum ada data pembeli terdaftar.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = buyers.map((b, idx) => {
+                const dateStr = b.created_at ? new Date(b.created_at).toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' }) : '-';
+                return `
+                    <tr>
+                        <td>${idx + 1}</td>
+                        <td class="mono-num" style="font-size: 12px; color: var(--text-muted);">${dateStr}</td>
+                        <td style="font-weight: 800;">${escapeHtml(b.name || '-')}</td>
+                        <td><span style="color: var(--primary); font-family: 'Outfit', 'Plus Jakarta Sans', sans-serif;">${escapeHtml(b.email)}</span></td>
+                        <td><span style="font-size: 11.5px; color: var(--text-muted); font-family: 'Outfit', 'Plus Jakarta Sans', sans-serif;">${escapeHtml(b.order_id || '-')}</span></td>
+                        <td><span class="badge-pill badge-success">● Aktif</span></td>
+                        <td style="text-align: right; white-space: nowrap;">
+                            <button class="btn-action" onclick="copyActivationLink('${escapeHtml(b.email)}')">🔗 Salin Link</button>
+                            <button class="btn-action btn-danger" onclick="hapusPembeli('${escapeHtml(b.email)}')">🗑️ Hapus</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function filterBuyers() {
+            const q = document.getElementById('searchBuyerInput').value.toLowerCase().trim();
+            if (!q) {
+                renderBuyersTable(allBuyersData);
+                return;
+            }
+            const filtered = allBuyersData.filter(b => 
+                (b.email || '').toLowerCase().includes(q) || 
+                (b.name || '').toLowerCase().includes(q) ||
+                (b.order_id || '').toLowerCase().includes(q)
+            );
+            const tbody = document.getElementById('buyersTbody');
+            tbody.innerHTML = filtered.map((b, idx) => `
+                <tr>
+                    <td>${idx + 1}</td>
+                    <td class="mono-num" style="font-size: 12px;">${b.created_at ? new Date(b.created_at).toLocaleDateString('id-ID') : '-'}</td>
+                    <td style="font-weight: 800;">${escapeHtml(b.name || '-')}</td>
+                    <td><span style="color: var(--primary); font-family: 'Outfit', 'Plus Jakarta Sans', sans-serif;">${escapeHtml(b.email)}</span></td>
+                    <td><span style="font-size: 11.5px; color: var(--text-muted); font-family: 'Outfit', 'Plus Jakarta Sans', sans-serif;">${escapeHtml(b.order_id || '-')}</span></td>
+                    <td><span class="badge-pill badge-success">● Aktif</span></td>
+                    <td style="text-align: right; white-space: nowrap;">
+                        <button class="btn-action" onclick="copyActivationLink('${escapeHtml(b.email)}')">🔗 Salin Link</button>
+                        <button class="btn-action btn-danger" onclick="hapusPembeli('${escapeHtml(b.email)}')">🗑️ Hapus</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        async function tambahPembeliManual() {
+            const email = document.getElementById('newBuyerEmail').value.trim();
+            const name = document.getElementById('newBuyerName').value.trim();
+            const note = document.getElementById('newBuyerNote').value.trim();
+            const key = getStoredKey() || document.getElementById('adminKeyInput').value.trim();
+
+            if (!email) return;
+
+            try {
+                const res = await fetch('/.netlify/functions/admin-buyers', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Admin-Key': key
+                    },
+                    body: JSON.stringify({ email, name, note })
+                });
+
+                if (res.ok) {
+                    showToast(`✅ Email ${email} berhasil diaktivasi!`);
+                    document.getElementById('addBuyerForm').reset();
+                    fetchBuyersList();
+                } else {
+                    const err = await res.json();
+                    alert('Gagal: ' + (err.error || 'Terjadi kesalahan'));
+                }
+            } catch (e) {
+                alert('Gagal menghubungi server.');
+            }
+        }
+
+        async function hapusPembeli(email) {
+            if (!confirm(`Hapus akses lisensi untuk email ${email}?`)) return;
+            const key = getStoredKey() || document.getElementById('adminKeyInput').value.trim();
+
+            try {
+                const res = await fetch('/.netlify/functions/admin-buyers', {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Admin-Key': key
+                    },
+                    body: JSON.stringify({ email })
+                });
+
+                if (res.ok) {
+                    showToast(`Akses ${email} dihapus.`);
+                    fetchBuyersList();
+                } else {
+                    alert('Gagal menghapus.');
+                }
+            } catch (e) {
+                alert('Error koneksi.');
+            }
+        }
+
+        function copyActivationLink(email) {
+            const origin = window.location.origin;
+            const link = `${origin}/?email=${encodeURIComponent(email)}`;
+            navigator.clipboard.writeText(link).then(() => {
+                showToast(`Link aktivasi disalin: ${link}`);
+            }).catch(() => {
+                prompt('Salin link ini:', link);
+            });
+        }
+
+        function exportBuyersCSV() {
+            if (!allBuyersData || allBuyersData.length === 0) {
+                alert('Tidak ada data pembeli untuk diekspor.');
+                return;
+            }
+
+            let csv = 'No,Tanggal,Nama,Email,OrderID,Produk\n';
+            allBuyersData.forEach((b, i) => {
+                csv += `${i+1},"${b.created_at || ''}","${(b.name || '').replace(/"/g, '""')}","${b.email || ''}","${b.order_id || ''}","${b.product_name || ''}"\n`;
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Pembeli_Budget_Tracker_${new Date().toISOString().slice(0,10)}.csv`;
+            a.click();
+            URL.revokeObjectURL(a);
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedKey = getStoredKey();
+            if (savedKey) {
+                document.getElementById('adminKeyInput').value = savedKey;
+                verifyAndLoadDashboard(savedKey);
+            }
+        });
+    </script>
+</body>
+</html>
